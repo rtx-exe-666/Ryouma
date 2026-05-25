@@ -1,4 +1,4 @@
-# ✋ Ryouma — Air Draw — Complete!
+# ✋ Ryouma — Air Draw pencil 
 
 🌐 **Live Preview**
 [https://rtx-exe-666.github.io/Ryouma/](https://rtx-exe-666.github.io/Ryouma/)
@@ -6,7 +6,7 @@
 📦 **Pull Request**
 [https://github.com/rtx-exe-666/Ryouma/pull/1](https://github.com/rtx-exe-666/Ryouma/pull/1)
 
-## 🎨 What Was Built
+## 🎨 What I Built
 
 A fully browser-based air drawing app powered by **MediaPipe Hands AI** — no plugins, no install, just your webcam!
 
