@@ -1,7 +1,7 @@
 # ✋ Ryouma — Air Draw — Complete!
 
 🌐 **Live Preview**
-[https://8080-ien0uwl8hln7fusqn7jn2-ea026bf9.sandbox.novita.ai](https://8080-ien0uwl8hln7fusqn7jn2-ea026bf9.sandbox.novita.ai)
+[https://8080-ien0uwl8hln7fusqn7jn2-ea026bf9.sandbox.novita.ai](https://rtx-exe-666.github.io/Ryouma/)
 
 📦 **Pull Request**
 [https://github.com/rtx-exe-666/Ryouma/pull/1](https://github.com/rtx-exe-666/Ryouma/pull/1)
