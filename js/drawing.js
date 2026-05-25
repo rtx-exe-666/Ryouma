@@ -1,6 +1,7 @@
 /**
  * drawing.js — Canvas drawing engine
  * Supports: round, square, spray, neon brush styles.
+ * Enhanced with KULDEEP watermark
  * Exposes DrawEngine that app.js uses.
  */
 
@@ -28,6 +29,25 @@ window.DrawEngine = (function () {
     ctx.lineJoin    = 'round';
   }
 
+  /* ── watermark drawing ──────────────────────────────────────────── */
+  function drawWatermark() {
+    if (!ctx || !canvas) return;
+    
+    ctx.save();
+    ctx.font = 'bold 24px Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    
+    // Draw watermark in bottom-right corner
+    const padding = 16;
+    const x = canvas.width - padding;
+    const y = canvas.height - padding;
+    
+    ctx.fillText('KULDEEP', x, y);
+    ctx.restore();
+  }
+
   /* ── undo helpers ────────────────────────────────────────────────── */
   function saveState() {
     if (undoStack.length >= MAX_UNDO) undoStack.shift();
@@ -38,12 +58,14 @@ window.DrawEngine = (function () {
     if (undoStack.length === 0) return;
     const snap = undoStack.pop();
     ctx.putImageData(snap, 0, 0);
+    drawWatermark(); // Redraw watermark after undo
   }
 
   /* ── clear ────────────────────────────────────────────────────────── */
   function clear() {
     saveState();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawWatermark(); // Redraw watermark after clear
   }
 
   /* ── core draw ────────────────────────────────────────────────────── */
@@ -162,6 +184,7 @@ window.DrawEngine = (function () {
     ctx.putImageData(snap, 0, 0);
     ctx.lineCap  = 'round';
     ctx.lineJoin = 'round';
+    drawWatermark(); // Redraw watermark after resize
   }
 
   return {
@@ -169,6 +192,7 @@ window.DrawEngine = (function () {
     startStroke, continueStroke, endStroke,
     setColor, setSize, setStyle, setOpacity, setErase,
     clear, undo, save, resize,
+    drawWatermark, // Expose watermark function
     get isDrawing() { return isDrawing; },
     get color()     { return brushColor; },
   };

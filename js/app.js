@@ -1,6 +1,7 @@
 /**
  * app.js — Main application controller
  * Wires together:  MediaPipe Hands → GestureRecognizer → DrawEngine → UI
+ * Enhanced with improved hand tracking accuracy and landmark smoothing
  */
 
 (function () {
@@ -49,6 +50,10 @@
   // Gesture indicator timer
   let gIndicatorTimer = null;
 
+  // Landmark smoothing for improved tracking accuracy
+  let prevLandmarks = null;
+  const SMOOTHING_FACTOR = 0.7; // Higher = more smoothing (0.7 recommended for accuracy)
+
   /* ── canvas sizing ───────────────────────────────────────────────── */
   function resizeCanvases() {
     const stage = document.getElementById('stage');
@@ -58,6 +63,27 @@
     drawCanvas.height    = h;
     landmarkCanvas.width = w;
     landmarkCanvas.height= h;
+    DrawEngine.drawWatermark(); // Redraw watermark on resize
+  }
+
+  /* ── landmark smoothing for accuracy ─────────────────────────────── */
+  function smoothLandmarks(currentLandmarks) {
+    if (!prevLandmarks) {
+      prevLandmarks = JSON.parse(JSON.stringify(currentLandmarks));
+      return currentLandmarks;
+    }
+
+    const smoothed = currentLandmarks.map((curr, i) => {
+      const prev = prevLandmarks[i];
+      return {
+        x: curr.x * (1 - SMOOTHING_FACTOR) + prev.x * SMOOTHING_FACTOR,
+        y: curr.y * (1 - SMOOTHING_FACTOR) + prev.y * SMOOTHING_FACTOR,
+        z: curr.z !== undefined ? (curr.z * (1 - SMOOTHING_FACTOR) + prev.z * SMOOTHING_FACTOR) : undefined
+      };
+    });
+
+    prevLandmarks = JSON.parse(JSON.stringify(smoothed));
+    return smoothed;
   }
 
   /* ── start flow ──────────────────────────────────────────────────── */
@@ -76,6 +102,7 @@
 
       resizeCanvases();
       DrawEngine.init(drawCanvas);
+      DrawEngine.drawWatermark();
       applyMirror();
 
       showLoading('Loading AI hand model…');
@@ -91,7 +118,7 @@
     resizeCanvases();
   });
 
-  /* ── MediaPipe Hands ─────────────────────────────────────────────── */
+  /* ── MediaPipe Hands with improved accuracy settings ──────────────── */
   function initMediaPipe() {
     const hands = new Hands({
       locateFile: file =>
@@ -100,9 +127,9 @@
 
     hands.setOptions({
       maxNumHands:             1,
-      modelComplexity:         1,
-      minDetectionConfidence:  0.75,
-      minTrackingConfidence:   0.70,
+      modelComplexity:         1,           // 1 = high accuracy mode
+      minDetectionConfidence:  0.80,        // Increased from 0.75 for better accuracy
+      minTrackingConfidence:   0.75,        // Increased from 0.70 for sustained tracking
     });
 
     hands.onResults(onResults);
@@ -133,11 +160,15 @@
       cursorDot.style.display = 'none';
       DrawEngine.endStroke();
       currentGesture = 'none';
+      prevLandmarks = null; // Reset smoothing on hand loss
       return;
     }
 
     handStatus.textContent = '✅ Detected';
-    const landmarks = results.multiHandLandmarks[0];
+    let landmarks = results.multiHandLandmarks[0];
+
+    // Apply smoothing for improved tracking accuracy
+    landmarks = smoothLandmarks(landmarks);
 
     drawLandmarks(lmCtx, landmarks);
 
@@ -274,7 +305,7 @@
     gIndicatorTimer = setTimeout(() => gestureIndicator.classList.remove('visible'), 1500);
   }
 
-  /* ── FPS ──────────────────────────────────────────────────────────── */
+  /* ── FPS ─────────────────────────────────────────────────────────── */
   function updateFPS() {
     frameCount++;
     const now = performance.now();
@@ -286,7 +317,7 @@
     }
   }
 
-  /* ── mirror ───────────────────────────────────────────────────────── */
+  /* ── mirror ──────────────────────────────────────────────────────── */
   function applyMirror() {
     const tf = mirrored ? 'scaleX(-1)' : 'scaleX(1)';
     webcamEl.style.transform = tf;

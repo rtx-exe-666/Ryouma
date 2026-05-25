@@ -1,5 +1,5 @@
 /**
- * gestures.js — Hand gesture recognition
+ * gestures.js — Hand gesture recognition with improved accuracy
  * Analyses MediaPipe Hands landmarks and returns a gesture string.
  *
  * Gesture catalogue:
@@ -8,6 +8,8 @@
  *   "erase"  – thumb + index pinch             → erase
  *   "clear"  – all five fingers open           → clear canvas
  *   "none"   – hand not in any recognised pose
+ *
+ * Enhanced with stricter thresholds for better accuracy
  */
 
 window.GestureRecognizer = (function () {
@@ -33,7 +35,7 @@ window.GestureRecognizer = (function () {
     const thumbIP  = lm[3];
     const dTip = Math.hypot(thumbTip.x - wrist.x, thumbTip.y - wrist.y);
     const dIP  = Math.hypot(thumbIP.x  - wrist.x, thumbIP.y  - wrist.y);
-    return dTip > dIP * 1.1;
+    return dTip > dIP * 1.15; // Improved threshold for better accuracy
   }
 
   function dist2D(a, b) {
@@ -59,8 +61,9 @@ window.GestureRecognizer = (function () {
     }
 
     // ── Pinch (thumb tip ↔ index tip very close) → ERASE ─────────
+    // Improved threshold from 0.06 to 0.055 for stricter detection
     const pinchDist = dist2D(lm[4], lm[8]);
-    if (pinchDist < 0.06 && !middleUp && !ringUp && !pinkyUp) {
+    if (pinchDist < 0.055 && !middleUp && !ringUp && !pinkyUp) {
       return { gesture: 'erase', x: lm[8].x, y: lm[8].y };
     }
 
